@@ -44,17 +44,21 @@ frameStmlsReshp = RGB2XWFormat(frameStmlsReshp)';
 % size(frameStmlsReshp)
 
 %%  ZL
-frameNoStmls = squeeze(ccframeStmlsCreate(numFrameNoStmls, stmlType{2}, nTrials));
-[nTrials, row, col, numFrameNoStmls] = size(frameNoStmls);
-meanFrameNoStmls = mean(frameNoStmls, 4);
-frameNoStmlsReshp = reshape(meanFrameNoStmls, [row * col, nTrials]);
-frameNoStmlsReshp = frameNoStmlsReshp';
+
+absorptionsNoStml = ccAbsorptions(stmlType{2}, nTrials);
+
+%%
+meanAbsorptionsNoStmls = mean(absorptionsNoStml, 4);
+
+
+frameNoStmlsReshp = permute(meanAbsorptionsNoStmls, [2 3 1]);
+frameNoStmlsReshp = RGB2XWFormat(frameNoStmlsReshp)';
 %% plot mean results
-meanStmlsPlot(meanFrameStmls);
+meanStmlsPlot(meanAbsorptions);
 
 hold on;
 
-meanStmlsPlot(meanFrameNoStmls);
+meanStmlsPlot(meanAbsorptionsNoStmls);
 
 %%
 dataStmls = [frameStmlsReshp;frameNoStmlsReshp];

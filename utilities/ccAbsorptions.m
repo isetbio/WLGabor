@@ -28,7 +28,7 @@ function absorptions = ccAbsorptions(stmlType, nTrials)
 
 %%  ZL to implement the parameters
 
-% p = inputParser;
+%p = inputParser;
 
 %% Generate eye movements
 
