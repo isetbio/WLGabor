@@ -3,17 +3,19 @@ function t_ccDiscriminate
 %
 %   Create Gabor stimuli with different contrasts.  Run an SVM to see
 %   if we can tell them apart.
+%   
+%   Currently gives 99.75% correctness.
 %
 % ZL, SCIEN STANFORD, 2018
-
+clc, close all, clear all;
 %%
 ieInit
 
 %%
 nFrames   = 100;   % Number of temporal samples
 numFrameNoStmls = 100;
-numFrameTotal = nFrames + numFrameNoStmls;
-nTrials = 100;
+
+nTrials = 2000;
 stmlType = {'Yes', 'No'};   % Stimulus or no stimulus
 
 %% Calculate the total number of absorptions
@@ -62,49 +64,32 @@ meanStmlsPlot(meanAbsorptionsNoStmls);
 
 %%
 dataStmls = [frameStmlsReshp;frameNoStmlsReshp];
-classStmls = cell(numFrameTotal,1);
-for i = 1 : nFrames
+classStmls = cell(2 * nTrials,1);
+for i = 1 : nTrials
     classStmls{i} = stmlType{1};
-    classStmls{i + nFrames} = stmlType{2};
+    classStmls{i + nTrials} = stmlType{2};
 end
-%classStmls{1:numFrameStmls} = stmlType{1};
-%classStmls{numFrameStmls + 1 : end} = stmlType{2};
 
-%%
-kernelFunction = 'rbf';
-standardizeSVMpredictors = false;
+
+%% parameter optimization
+%{
+%svm = fitcsvm(dataStmls, classStmls, 'OptimizeHyperparameters', 'all', 'HyperparameterOptimizationOptions',struct('AcquisitionFunctionName',...
+    'expected-improvement-plus'));
+%}
+
+
+%% optimized parameter try
+% best parameter for now
+boxConstraint = 0.0017183;
+kernelScale = 23.443;
+kernelFunction = 'gaussian';
+standarize = true;
 
 kFold = 10;
-
-
-%svm = fitcsvm(dataStmls, classStmls, 'KernelFunction',kernelFunction,'KernelScale','auto', 'standardize', standardizeSVMpredictors);
-svm = fitcsvm(dataStmls, classStmls);
-CVSVM = crossval(svm,'KFold',kFold);
-percentCorrect = 1 - kfoldLoss(CVSVM,'lossfun','classiferror','mode','individual');
+svmOptimize = fitcsvm(dataStmls, classStmls, 'BoxConstraint', boxConstraint, 'KernelScale', kernelScale, 'KernelFunction', kernelFunction,'Standardize', standardize);
+CVSVMOptimize = crossval(svmOptimize,'KFold',kFold);
+percentCorrect = 1 - kfoldLoss(CVSVMOptimize,'lossfun','classiferror','mode','individual');
 stdErr = std(percentCorrect)/sqrt(kFold);
-percentCorrect = mean(percentCorrect);
-
-%% Plot result
-sv = svm.SupportVectors;
-figure
-gscatter(dataStmls(:,1),dataStmls(:,2),classStmls)
-hold on
-plot(sv(:,1),sv(:,2),'ko','MarkerSize',10)
-legend('Harmonic Stimulus','No Harmonic Stimulus','Support Vector')
-hold off
-%%
-
-
-
-
-
-
-
-
-
-
-
-
-
+meanPercent = mean(percentCorrect)
 
 end
