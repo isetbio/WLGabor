@@ -15,7 +15,7 @@ ieInit
 nFrames   = 100;   % Number of temporal samples
 numFrameNoStmls = 100;
 
-nTrials = 2000;
+nTrials = 50;
 stmlType = {'Yes', 'No'};   % Stimulus or no stimulus
 
 %% Calculate the total number of absorptions
@@ -86,7 +86,7 @@ kernelFunction = 'gaussian';
 standarize = true;
 
 kFold = 10;
-svmOptimize = fitcsvm(dataStmls, classStmls, 'BoxConstraint', boxConstraint, 'KernelScale', kernelScale, 'KernelFunction', kernelFunction,'Standardize', standardize);
+svmOptimize = fitcsvm(dataStmls, classStmls, 'BoxConstraint', boxConstraint, 'KernelScale', kernelScale, 'KernelFunction', kernelFunction,'Standardize', standarize);
 CVSVMOptimize = crossval(svmOptimize,'KFold',kFold);
 percentCorrect = 1 - kfoldLoss(CVSVMOptimize,'lossfun','classiferror','mode','individual');
 stdErr = std(percentCorrect)/sqrt(kFold);
