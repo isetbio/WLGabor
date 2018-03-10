@@ -56,6 +56,11 @@ fixEMobj.compute(emDuration, sampTime, nTrials, ...
     compVelocity, 'useParfor', usePar);
 
 %%  Generate oisequence
+
+% To generate the harmonic sequence,
+% PLEASE USE oisCreate();
+%
+
 % Two scenes, for oiFixed and oiModulated
 scene = cell(1,2);
 % oiModulated harmonic parameters
