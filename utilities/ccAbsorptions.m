@@ -96,4 +96,9 @@ fixEMobj.computeForConeMosaic(cm, eyeMovementsPerTrial, ...
 empathTest  = fixEMobj.emPos;
 absorptions = cm.compute(ois, 'empath', empathTest);
 
+% This should, but doesn't, work.  Fix it!
+% cm.emPositions = empathTest;
+% absorptions = cm.compute(ois);
+
+
 end
