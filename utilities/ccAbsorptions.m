@@ -1,4 +1,4 @@
-function absorptions = ccAbsorptions(stmlType, nTrials)
+function [absorptions, cm] = ccAbsorptions(ois, nTrials, varargin)
 % Calculate the total cone absorptions for multiple trials  
 %
 % Description:
@@ -33,12 +33,16 @@ function absorptions = ccAbsorptions(stmlType, nTrials)
 %% Generate eye movements
 
 % Generate eye movement data for 2 1-second long trials, with a
-% sample time of 1 millisecond.
-emDuration = 1; sampTime = 1/100;
+% sample time of 1 millisecond.  We want to be able to control the
+% size of the eye movements, making sure that they aren't too big so
+% the stimulus is not visible on the mosaic.
+
+emDuration = ois.timeStep*numel(ois.timeAxis);   % This should be get/set type stuff
+sampTime   = ois.timeStep;
 
 % Do not compute velocity of eye movements
 compVelocity = false;
-usePar = false;
+usePar       = false;
 
 % Random seed to be used in all eye movement compute() calls
 ranSeed = 1;
@@ -55,56 +59,20 @@ fixEMobj.randomSeed = ranSeed;
 fixEMobj.compute(emDuration, sampTime, nTrials, ...
     compVelocity, 'useParfor', usePar);
 
-%%  Generate oisequence
 
-% To generate the harmonic sequence,
-% PLEASE USE oisCreate();
-%
+%% Make the cone mosaic
 
-% Two scenes, for oiFixed and oiModulated
-scene = cell(1,2);
-% oiModulated harmonic parameters
-tparams(2) = harmonicP;
-tparams(2).freq = 4;
-tparams(2).GaborFlag = 0.2;
-%tparams(2).row = 16; 
-%tparams(2).col = 16;
+% The FOV of the mosaic should a little smaller, say 10% smaller than
+% the field of the image irradiance
+cm = coneMosaic;
 
-% oiFixed has the same parameters, but zero contrast
-tparams(1) = tparams(2);
-tparams(1).contrast = 0;
+% Match the oisequence parameters
+cm.integrationTime = ois.timeStep;
 
-if (strcmp(stmlType, 'No'))   % No stimulus
-    tparams(2).contrast = 0;
-end
-% Create the harmonic scenes
-sz = 100;
-for ii=1:2
-    scene{ii} = sceneCreate('harmonic',tparams(ii));
-end
+% Make the cm smaller than the oi size, but never smaller than 0.2 deg
+fovDegs = max(oiGet(ois.oiFixed,'fov') - 0.2, 0.2);  % Degrees
+cm.setSizeToFOV(fovDegs);
 
-
-% Compute optical images from the scene
-OIs = cell(1, 2);
-oi = oiCreate;
-for ii = 1:2
-    OIs{ii} = oiCompute(oi,scene{ii});
-end
-
-integrateTimeOI = 0.01;
-moduleLength = emDuration / integrateTimeOI;
-modulation = ieScale(fspecial('gaussian',[1,moduleLength],10),0,.5);
-sampleTimes = ((1: length(modulation))-1)*integrateTimeOI;
-ois = oiSequence(OIs{1}, OIs{2}, sampleTimes, modulation, ...
-    'composition', 'blend');
-%ois.visualize('movie illuminance');
-%%
-fovDegs = 2;
-TimeIntegrat = 1/100;
-
-cm = coneMosaic('fov', fovDegs,'size',[72, 88]);
-cm.integrationTime = TimeIntegrat;
-cm.fov = fovDegs;
 %% Generate cone mosaic
 % cone mosaic parms
 % fovDegs = 1;
@@ -117,26 +85,15 @@ cm.fov = fovDegs;
 %legends{numel(legends)+1} = sprintf('resampling: %2.0f ms', resamplingFactors(iSampleIndex));
 
 %% Compute the number of eye movements for this integration time and oiSequence
+
 eyeMovementsPerTrial = ois.maxEyeMovementsNumGivenIntegrationTime(cm.integrationTime);
 fixEMobj.computeForConeMosaic(cm, eyeMovementsPerTrial, ...
     'nTrials', nTrials, ...
     'computeVelocity', true, ...
     'rSeed', 1);
-%%
-%cm.emPositions = fixEMobj.emPos;
-%empathTest = zeros(100,100,2);
+%%  Invoke cone compute with eye movements
 
-empathTest = ceil(fixEMobj.emPos / 1);
-
-%[absorptions, ~, ~, ~ ] = cm.compute(ois, 'empath', fixEMobj.emPos);
-[absorptions, ~, ~, ~ ] = cm.compute(ois, 'empath', empathTest);
-%cm.emPositions = fixEMobj.emPos;
-%cm.rows = 130;
-%cm.cols = 130;
-%absorptionsTemp = absorptions(:,75:174, 75:174, :);
-%% Might need to change the window function
-cm.window;
-%% Extract  based on number of frame
-absorptions = absorptionsTemp;
+empathTest  = fixEMobj.emPos;
+absorptions = cm.compute(ois, 'empath', empathTest);
 
 end

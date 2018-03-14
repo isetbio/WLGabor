@@ -3,25 +3,56 @@ function t_ccDiscriminate
 %
 %   Create Gabor stimuli with different contrasts.  Run an SVM to see
 %   if we can tell them apart.
-%   
+%
 %   Currently gives 99.75% as highest correctness.
 %
 % ZL, SCIEN STANFORD, 2018
-clc, close all, clear all;
+
+
 %%
 ieInit
+% clc, close all, clear all;
 
-%%
-nFrames   = 100;   % Number of temporal samples
-numFrameNoStmls = 100;
+%% Make the stimulus
 
-nTrials = 100;
+%%  Generate oisequence
+
+clear hparams
+
+% Make the time varying part
+hparams(2) = harmonicP;
+hparams(2).freq      = 15;     % Cycles per field of view
+hparams(2).GaborFlag = 0.2;
+hparams(2).contrast  = 0.1;
+
+% Make the constant part
+hparams(1) = hparams(2);
+hparams(1).contrast = 0;
+sparams.fov = 0.6;
+fprintf('Cycles per degree %.1f\n',hparams(1).freq/sparams.fov);
+
+% These are the scalar over time for the oi sequence
+nTimeSteps = 100;
+tSD = 30;
+stimWeights = ieScale(fspecial('gaussian',[1,nTimeSteps],tSD),0,1);
+
+% Build the sequence
+ois = oisCreate('harmonic','blend',stimWeights, ...
+    'testParameters',hparams,'sceneParameters',sparams);
+
+%{
+ ois.visualize('movie illuminance');
+%}
+    
+nTrials = 100;      % Debug with a small number of trials
 stmlType = {'Yes', 'No'};   % Stimulus or no stimulus
 
 %% Calculate the total number of absorptions
 
 % <trials,row,col,time>
-absorptions = ccAbsorptions(stmlType{1}, nTrials);
+[absorptionsStim, cm] = ccAbsorptions(ois, nTrials);
+cm.window;
+
 %{
 % Look at the movie from a trial
 thisTrial = 1;
@@ -29,41 +60,45 @@ trialData = squeeze(absorptions(thisTrial,:,:,:));
 ieMovie(trialData);
 %}
 
+%% Create the zero contrast version
+hparams(2).contrast = 0;
+ois = oisCreate('harmonic','blend',stimWeights, ...
+    'testParameters',hparams,'sceneParameters',sparams);
+absorptionsNostim = ccAbsorptions(ois, nTrials);
+
 %% Create a vector of the mean absorptions on each trial
 %
+
+% This could be a function that converts absorptions into the right
+% format for classification
+
 % We place the data into one big matrix with <space, trials>
-meanAbsorptions = mean(absorptions, 4);
+meanAbsorptionsStim = mean(absorptionsStim, 4);
 %{
-trialData = squeeze(meanAbsorptions(1,:,:));
+trialData = squeeze(meanAbsorptionsStim(1,:,:));
 vcNewGraphWin;
 imagesc(trialData); colormap(gray); colorbar; axis image
 %}
 
 % We want to put each vector of the cone absorptions in a trial into a
-% row of the stimulus matrix. Later we will add the no stimulus trials with their label.
-frameStmlsReshp = permute(meanAbsorptions,[2 3 1]);
+% row of the stimulus matrix. Later we will add the no stimulus trials
+% with their label.  The original ordering is trial,row,col.  We shift
+% to row,col,trial and then reshape 
+frameStmlsReshp = permute(meanAbsorptionsStim,[2 3 1]);
+% ieMovie(frameStmlsReshp);
+
 frameStmlsReshp = RGB2XWFormat(frameStmlsReshp)';
 % size(frameStmlsReshp)
 
-%%  ZL
-
-absorptionsNoStml = ccAbsorptions(stmlType{2}, nTrials);
-
-%%
-meanAbsorptionsNoStmls = mean(absorptionsNoStml, 4);
-
-
-frameNoStmlsReshp = permute(meanAbsorptionsNoStmls, [2 3 1]);
+% Do it again for the no contrast case
+frameNoStmlsReshp = permute(mean(absorptionsNostim, 4),[2 3 1]);
 frameNoStmlsReshp = RGB2XWFormat(frameNoStmlsReshp)';
-%% plot mean results
-meanStmlsPlot(meanAbsorptions);
+% size(frameNoStmlsReshp)
 
-hold on;
+%% Combine the stimuli and the labels
 
-meanStmlsPlot(meanAbsorptionsNoStmls);
-
-%%
 dataStmls = [frameStmlsReshp;frameNoStmlsReshp];
+% size(dataStmls)
 classStmls = cell(2 * nTrials,1);
 for i = 1 : nTrials
     classStmls{i} = stmlType{1};
@@ -71,28 +106,47 @@ for i = 1 : nTrials
 end
 
 
-%% parameter optimization
-%{
-%svm = fitcsvm(dataStmls, classStmls, 'OptimizeHyperparameters', 'all', 'HyperparameterOptimizationOptions',struct('AcquisitionFunctionName',...
-    'expected-improvement-plus'));
-%}
-sigma = optimizableVariable('sigma',[1e-5,1e5],'Transform','log');
-box = optimizableVariable('box',[1e-5,1e5],'Transform','log');
+%% Simple svm fit
 
-%% optimized parameter try
-% best parameter for now
-boxConstraint = 0.0017183;
-kernelScale = 23.443;
-kernelFunction = 'gaussian';
-standarize = true;
-
-kFold = 10;
 svm = fitcsvm(dataStmls, classStmls);
-%svmOptimize = fitcsvm(dataStmls, classStmls, 'BoxConstraint', boxConstraint, 'KernelScale', kernelScale, 'KernelFunction', kernelFunction,'Standardize', standarize, 'Cost', [0 100;100 0]);
+kFold = 10;
 CVSVMOptimize = crossval(svm,'KFold',kFold);
-percentCorrect = 1 - kfoldLoss(CVSVMOptimize,'lossfun','classiferror','mode','individual');
-stdErr = std(percentCorrect)/sqrt(kFold);
-meanPercent = mean(percentCorrect)
+probabilityCorrect = 1 - kfoldLoss(CVSVMOptimize,'lossfun','classiferror','mode','individual');
+fprintf('Mean probability correct %.2f\n',mean(probabilityCorrect));
+
+%%
+%{
+We aren't using the whole time series.  We are using only the mean of
+the time series.  Can we set this up to run with the time series.
+This would mean 
+
+%}
+% stdErr = std(probabilityCorrect)/sqrt(kFold);
+
+% 
+% 
+% %% parameter optimization
+% %{
+% %svm = fitcsvm(dataStmls, classStmls, 'OptimizeHyperparameters', 'all', 'HyperparameterOptimizationOptions',struct('AcquisitionFunctionName',...
+%     'expected-improvement-plus'));
+% %}
+% sigma = optimizableVariable('sigma',[1e-5,1e5],'Transform','log');
+% box = optimizableVariable('box',[1e-5,1e5],'Transform','log');
+% 
+% %% optimized parameter try
+% % best parameter for now
+% boxConstraint = 0.0017183;
+% kernelScale = 23.443;
+% kernelFunction = 'gaussian';
+% standarize = true;
+% 
+% kFold = 10;
+% svm = fitcsvm(dataStmls, classStmls);
+% %svmOptimize = fitcsvm(dataStmls, classStmls, 'BoxConstraint', boxConstraint, 'KernelScale', kernelScale, 'KernelFunction', kernelFunction,'Standardize', standarize, 'Cost', [0 100;100 0]);
+% CVSVMOptimize = crossval(svm,'KFold',kFold);
+% percentCorrect = 1 - kfoldLoss(CVSVMOptimize,'lossfun','classiferror','mode','individual');
+% stdErr = std(percentCorrect)/sqrt(kFold);
+% meanPercent = mean(percentCorrect)
 % %%
 % %% Bayesian
 % c = cvpartition(2 * nTrials,'KFold',10);
