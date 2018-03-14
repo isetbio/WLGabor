@@ -46,7 +46,7 @@ ranSeed = 1;
 % Initialize object
 fixEMobj = fixationalEM();
 
-% First case: No micro-saccades, only drift
+% First case: micro-saccades, and drift
 % Set all params to their default value
 fixEMobj.setDefaultParams();
 fixEMobj.microSaccadeType = 'stats based';
@@ -67,6 +67,8 @@ scene = cell(1,2);
 tparams(2) = harmonicP;
 tparams(2).freq = 4;
 tparams(2).GaborFlag = 0.2;
+%tparams(2).row = 16; 
+%tparams(2).col = 16;
 
 % oiFixed has the same parameters, but zero contrast
 tparams(1) = tparams(2);
@@ -76,6 +78,7 @@ if (strcmp(stmlType, 'No'))   % No stimulus
     tparams(2).contrast = 0;
 end
 % Create the harmonic scenes
+sz = 100;
 for ii=1:2
     scene{ii} = sceneCreate('harmonic',tparams(ii));
 end
@@ -96,12 +99,12 @@ ois = oiSequence(OIs{1}, OIs{2}, sampleTimes, modulation, ...
     'composition', 'blend');
 %ois.visualize('movie illuminance');
 %%
-fovDegs = 1;
+fovDegs = 2;
 TimeIntegrat = 1/100;
 
-cm = coneMosaic('fovDegs', fovDegs);
+cm = coneMosaic('fov', fovDegs,'size',[72, 88]);
 cm.integrationTime = TimeIntegrat;
-
+cm.fov = fovDegs;
 %% Generate cone mosaic
 % cone mosaic parms
 % fovDegs = 1;
@@ -120,13 +123,20 @@ fixEMobj.computeForConeMosaic(cm, eyeMovementsPerTrial, ...
     'computeVelocity', true, ...
     'rSeed', 1);
 %%
-cm.emPositions = fixEMobj.emPos;
-[absorptions, ~, ~, ~ ] = cm.compute(ois);
-cm.emPositions = fixEMobj.emPos;
+%cm.emPositions = fixEMobj.emPos;
+%empathTest = zeros(100,100,2);
 
+empathTest = ceil(fixEMobj.emPos / 1);
+
+%[absorptions, ~, ~, ~ ] = cm.compute(ois, 'empath', fixEMobj.emPos);
+[absorptions, ~, ~, ~ ] = cm.compute(ois, 'empath', empathTest);
+%cm.emPositions = fixEMobj.emPos;
+%cm.rows = 130;
+%cm.cols = 130;
+%absorptionsTemp = absorptions(:,75:174, 75:174, :);
 %% Might need to change the window function
-%cm.window;
+cm.window;
 %% Extract  based on number of frame
-absorptions = absorptions;
+absorptions = absorptionsTemp;
 
 end

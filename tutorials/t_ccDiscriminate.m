@@ -4,7 +4,7 @@ function t_ccDiscriminate
 %   Create Gabor stimuli with different contrasts.  Run an SVM to see
 %   if we can tell them apart.
 %   
-%   Currently gives 99.75% correctness.
+%   Currently gives 99.75% as highest correctness.
 %
 % ZL, SCIEN STANFORD, 2018
 clc, close all, clear all;
@@ -15,7 +15,7 @@ ieInit
 nFrames   = 100;   % Number of temporal samples
 numFrameNoStmls = 100;
 
-nTrials = 50;
+nTrials = 100;
 stmlType = {'Yes', 'No'};   % Stimulus or no stimulus
 
 %% Calculate the total number of absorptions
@@ -76,7 +76,8 @@ end
 %svm = fitcsvm(dataStmls, classStmls, 'OptimizeHyperparameters', 'all', 'HyperparameterOptimizationOptions',struct('AcquisitionFunctionName',...
     'expected-improvement-plus'));
 %}
-
+sigma = optimizableVariable('sigma',[1e-5,1e5],'Transform','log');
+box = optimizableVariable('box',[1e-5,1e5],'Transform','log');
 
 %% optimized parameter try
 % best parameter for now
@@ -86,10 +87,30 @@ kernelFunction = 'gaussian';
 standarize = true;
 
 kFold = 10;
-svmOptimize = fitcsvm(dataStmls, classStmls, 'BoxConstraint', boxConstraint, 'KernelScale', kernelScale, 'KernelFunction', kernelFunction,'Standardize', standarize);
-CVSVMOptimize = crossval(svmOptimize,'KFold',kFold);
+svm = fitcsvm(dataStmls, classStmls);
+%svmOptimize = fitcsvm(dataStmls, classStmls, 'BoxConstraint', boxConstraint, 'KernelScale', kernelScale, 'KernelFunction', kernelFunction,'Standardize', standarize, 'Cost', [0 100;100 0]);
+CVSVMOptimize = crossval(svm,'KFold',kFold);
 percentCorrect = 1 - kfoldLoss(CVSVMOptimize,'lossfun','classiferror','mode','individual');
 stdErr = std(percentCorrect)/sqrt(kFold);
 meanPercent = mean(percentCorrect)
-
+% %%
+% %% Bayesian
+% c = cvpartition(2 * nTrials,'KFold',10);
+% minfn = @(z)kfoldLoss(fitcsvm(dataStmls,classStmls,'CVPartition',c,...
+%     'KernelFunction','rbf','BoxConstraint',z.box,...
+%     'KernelScale',z.sigma));
+% %%
+% results = bayesopt(minfn,[sigma,box],'IsObjectiveDeterministic',true,...
+%     'AcquisitionFunctionName','expected-improvement-plus')
+% %%
+% z(1) = results.XAtMinObjective.sigma;
+% z(2) = results.XAtMinObjective.box;
+% SVMModel = fitcsvm(dataStmls,classStmls,'KernelFunction','rbf',...
+%     'KernelScale',z(1),'BoxConstraint',z(2));
+% %%
+% kFold = 10;
+% CVSVMTest = crossval(SVMModel,'KFold',kFold);
+% percentCorrect = 1 - kfoldLoss(CVSVMTest,'lossfun','classiferror','mode','individual');
+% stdErr = std(percentCorrect)/sqrt(kFold);
+% meanPercent = mean(percentCorrect)
 end
