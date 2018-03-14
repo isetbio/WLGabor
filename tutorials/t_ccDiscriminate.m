@@ -114,13 +114,38 @@ CVSVMOptimize = crossval(svm,'KFold',kFold);
 probabilityCorrect = 1 - kfoldLoss(CVSVMOptimize,'lossfun','classiferror','mode','individual');
 fprintf('Mean probability correct %.2f\n',mean(probabilityCorrect));
 
+%% Curves to make
+
+% 1. Frequency on x and probability correct, for a fixed contrast
+% level.
+% 2.  Sweep out many contrast levels for each frequency.  Show the
+% contrast needed to achieve a fixed probability correct (75% or 80%)
+% iso-performance level.
+% 
+
+% Have fun.
+
 %%
+
 %{
+% Signal known approximately idea
+% And using the whole time series.
+
 We aren't using the whole time series.  We are using only the mean of
-the time series.  Can we set this up to run with the time series.
-This would mean 
+the time series.  Can we set this up to run with the time series?
+One way is to take a 100% contrast example of the stimulus, and make a
+time series.  S(x,y,t).  Then compute the principal components of the
+images, S(x,y,:).  This would be
+
+   [ ..,  vector(S(x,y,ii),... ]
+
+Take the SVD of this matrix.  THe first 10 biggest singular values
+would be the basis functions.  We replace the  images in the SVM with
+the weights on those basis functions.  BW thinks it will be reasonably
+accurate to use less than 5 basis functions for a known harmonic.
 
 %}
+
 % stdErr = std(probabilityCorrect)/sqrt(kFold);
 
 % 
