@@ -1,10 +1,10 @@
-function t_ccDiscriminate
+function singleMeanCorrect = t_ccDiscriminate(freq, contrast, fov)
 %% cc = contrast classification
 %
 %   Create Gabor stimuli with different contrasts.  Run an SVM to see
 %   if we can tell them apart.
-%
-%   Currently gives 99.75% as highest correctness.
+%   Contrast
+%   
 %
 % ZL, SCIEN STANFORD, 2018
 
@@ -21,14 +21,14 @@ clear hparams
 
 % Make the time varying part
 hparams(2) = harmonicP;
-hparams(2).freq      = 15;     % Cycles per field of view
+hparams(2).freq      = freq;     % Cycles per field of view
 hparams(2).GaborFlag = 0.2;
-hparams(2).contrast  = 0.1;
+hparams(2).contrast  = contrast;
 
 % Make the constant part
 hparams(1) = hparams(2);
 hparams(1).contrast = 0;
-sparams.fov = 0.6;
+sparams.fov = fov;
 fprintf('Cycles per degree %.1f\n',hparams(1).freq/sparams.fov);
 
 % These are the scalar over time for the oi sequence
@@ -51,7 +51,7 @@ stmlType = {'Yes', 'No'};   % Stimulus or no stimulus
 
 % <trials,row,col,time>
 [absorptionsStim, cm] = ccAbsorptions(ois, nTrials);
-cm.window;
+%cm.window;
 
 %{
 % Look at the movie from a trial
@@ -113,7 +113,7 @@ kFold = 10;
 CVSVMOptimize = crossval(svm,'KFold',kFold);
 probabilityCorrect = 1 - kfoldLoss(CVSVMOptimize,'lossfun','classiferror','mode','individual');
 fprintf('Mean probability correct %.2f\n',mean(probabilityCorrect));
-
+singleMeanCorrect = mean(probabilityCorrect);
 %% Curves to make
 
 % 1. Frequency on x and probability correct, for a fixed contrast
@@ -145,6 +145,11 @@ the weights on those basis functions.  BW thinks it will be reasonably
 accurate to use less than 5 basis functions for a known harmonic.
 
 %}
+
+
+
+
+
 
 % stdErr = std(probabilityCorrect)/sqrt(kFold);
 
