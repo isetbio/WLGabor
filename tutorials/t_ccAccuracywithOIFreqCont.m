@@ -7,6 +7,8 @@ function meanProbCorrect = t_ccAccuracywithOIFreqCont
 % Output:
 %       meanProbCorrect     - Mean probability of correctness
 %%  call t_ccDiscriminate
+% Set the certain range of contrast, frequency and FOV for the OI sequence, calculate the mean
+% probability of correctness by call t_ccDiscriminate
     contrast = [0.1 : 0.3 : 0.7];
     frequency = [1 : 1 : 15];
     meanProbCorrect = zeros(numel(frequency), numel(contrast));
@@ -23,6 +25,10 @@ function meanProbCorrect = t_ccAccuracywithOIFreqCont
     
     
 %%  Plot the result
+% This function is used to plot the mean probability of correctness with
+% different frequency and contrast.
+% Todo: fit the curve and find the freqeuency under different contrast that
+% has 80% (75%) correctness.
     plotMeanProb(meanProbCorrect, frequency, contrast);
    
 end

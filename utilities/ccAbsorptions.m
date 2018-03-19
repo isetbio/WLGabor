@@ -26,9 +26,14 @@ function [absorptions, cm] = ccAbsorptions(ois, nTrials, varargin)
 % See also:
 
 
-%%  ZL to implement the parameters
+%%  Parse inputs
 
-%p = inputParser;
+p = inputParser;
+p.addRequired('ois', @(x)isa(x, 'oiSequence'));
+p.addParameter('nTrials', nTrials, @isnumeric);
+p.parse(ois)
+ois = p.Results.ois;
+nTrials = p.Results.nTrials;
 
 %% Generate eye movements
 
