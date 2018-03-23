@@ -9,6 +9,7 @@ function t_principleComponent
 
 freq = 10;
 contrast = 0.8;
+fov = 0.6;
 %%  Generate oisequence
 
 clear hparams
@@ -35,13 +36,24 @@ ois = oisCreate('harmonic','blend',stimWeights, ...
     'testParameters',hparams,'sceneParameters',sparams);
 %% Generate absorption for single trail
 
-nTrials = 1;
+nTrials = 10;
 [absorptions, cm] = ccAbsorptions(ois, nTrials);
 
-%% Vectorize the absorption
-absorptionVec = permute(squeeze(absorptions),[1 2 3]);
-absorptionVec = RGB2XWFormat(absorptionVec)';
+[nTrials, row, col, bands] = size(absorptions);
+%%
+UVector = zeros(nTrials, bands, bands);
+SVector = zeros(nTrials, bands, row * col);
+VVector = zeros(nTrials, row * col, row * col);
+for i = 1 : nTrials
+    % Vectorize the absorption
+    absorptionVec = permute(squeeze(absorptions(i,:,:,:)),[1 2 3]);
+    absorptionVec = RGB2XWFormat(absorptionVec)';
+    
+    % Calculate the svd
+    [U, S, V] = svd(absorptionVec);
+    UVector(i, :, :) = U;
+    VVector(i, :, :) = V;
+    SVector(i, :, :) = S;
+end
 
-%% Calculate the svd
-[U, S, V] = svd(absorptionVec);
 end
