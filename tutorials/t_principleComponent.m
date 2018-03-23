@@ -1,4 +1,5 @@
 function t_principleComponent
+%
 % The function is a short demo to give the idea that how to generate the 
 % principleComponent for the cone absorptions of each trial. It'll first
 % generate the absorptions, vectorize every single frame, and calculate the
