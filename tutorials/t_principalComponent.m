@@ -52,7 +52,7 @@ absorptionVec = RGB2XWFormat(absorptionVec)';
 %{
 % Show the mean
 meanAbs = mean(absorptionVec);
-reshape(meanAbs,cm.rows,cm.cols);
+tmp = reshape(meanAbs,cm.rows,cm.cols);
 imagesc(tmp); colormap(gray); axis image
 %}
 absorptionVec0 = absorptionVec - meanAbs;
@@ -112,9 +112,29 @@ grid on;
 %}
 %{
 % Reconstruct
+    absorptionTemp = wgts * thesePC';
 
 %}
 
+%% Evaluate PSNR for different number of weights that should be used:
 
+%{ 
+    nPCtemp = [3:10:93,99,100];
+    PSNRset = zeros(1,numel(nPCtemp));
+    for i = 1:numel(nPCtemp)
+        nPC = nPCtemp(i);
+        thesePC = allPC(:,:,1:nPC);
+        % thesePC:  <X, nPC>
+        thesePC = RGB2XWFormat(thesePC);
+        % size(thesePC)
 
-end
+        wgts = absorptionVec0*thesePC;
+        absorptionTemp = wgts * thesePC';
+        % Calculate MSE:
+        [rowAbsorption, colAbsorption] = size(absorptionTemp);
+        MSE = 1/(rowAbsorption * colAbsorption) * sum(sum((absorptionTemp - ...
+        absorptionVec0).^2));
+        PSNRset(i) = 10 * log10 (max(max(absorptionVec0.^2)) / MSE);
+    end
+    plot(nPCtemp, PSNRset,'-o')
+%}
