@@ -45,6 +45,10 @@ ois = oisCreate('harmonic','blend',stimWeights, ...
 nTrials = 1;
 [absorptions, cm] = ccAbsorptions(ois, nTrials);
 
+%{
+[thesePC, svalues] = pcFromAbsorptions(absorptions,nPCs)
+%}
+
 %% Vectorize the absorption
 absorptionVec = permute(squeeze(absorptions),[1 2 3]);
 absorptionVec = RGB2XWFormat(absorptionVec)';
@@ -54,15 +58,13 @@ absorptionVec = RGB2XWFormat(absorptionVec)';
 meanAbs = mean(absorptionVec);
 tmp = reshape(meanAbs,cm.rows,cm.cols);
 imagesc(tmp); colormap(gray); axis image
-%}
 absorptionVec0 = absorptionVec - meanAbs;
-%{
-z = mean(absorptionVec0);
-max(z(:))
 %}
 
 %% Calculate the svd.  absorptionVec = U*S*V' 
-[~, S, V] = svd(absorptionVec0,'econ');
+
+
+[~, S, V] = svd(absorptionVec,'econ');
 vcNewGraphWin; plot(diag(S),'o-');
 title('Singular values');
 
@@ -75,6 +77,7 @@ max(absorptionVec0(:) - tmp(:))
 %}
 
 %% In this formulation, the weights are U*S and the PCs are the rows of V
+
 
 % Convert the PCs to images (matrices) if we did not subtract the mean
 allPC = XW2RGBFormat(V,cm.rows,cm.cols);
@@ -108,14 +111,37 @@ vcNewGraphWin;
 plot3(wgts(:,1),wgts(:,2),wgts(:,3),'o');
 axis equal
 grid on;
-
 %}
 %{
 % Reconstruct
-    absorptionTemp = wgts * thesePC';
-
+  absorptionTemp = wgts * thesePC';
+  nFrame = 30;
+  approx = reshape(absorptionTemp(nFrame,:),cm.rows,cm.cols);
+  vcNewGraphWin; imagesc(approx); colormap(gray); axis image;
+  actual = reshape(absorptionVec(nFrame,:),cm.rows,cm.cols);
+  vcNewGraphWin; imagesc(approx); colormap(gray); axis image;
 %}
 
+%% Here is a curve we want
+
+%{
+   %For a series of contrast levels, say from 1 percent to 50%
+   % maybe 5 or 7 different levels  
+   sContrast = logspace(-2,-0.3,5)
+   sFreq     = logspace(0,1.5, 8)
+   calculate the probability correct for 3 principal component approx
+   make the image or matrix that has rows of contrast, columns of
+   spatial frequency, entries of probability correct detection
+   Show it as an image or a mesh or a set of curves
+
+   Make sure you do some checks that when it is 0 contrast, you are at
+   chance.
+
+   Make sure that the Gabor stimulus with contrast and without have
+   the same eye movements!
+
+   Have a great time.
+%}
 %% Evaluate PSNR for different number of weights that should be used:
 
 %{ 
