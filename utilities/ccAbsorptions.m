@@ -1,4 +1,4 @@
-function [absorptions, cm] = ccAbsorptions(ois, nTrials, varargin)
+function [absorptions, cm, emPath] = ccAbsorptions(ois, nTrials, varargin)
 % Calculate the total cone absorptions for multiple trials  
 %
 % Description:
@@ -99,11 +99,15 @@ fixEMobj.computeForConeMosaic(cm, eyeMovementsPerTrial, ...
 %%  Invoke cone compute with eye movements
 
 empathTest  = fixEMobj.emPos;
+
+if (numel(varargin) >= 1)
+    empathTest = varargin{1};
+end
 absorptions = cm.compute(ois, 'empath', empathTest);
 
 % This should, but doesn't, work.  Fix it!
 % cm.emPositions = empathTest;
 % absorptions = cm.compute(ois);
-
+emPath = empathTest;
 
 end

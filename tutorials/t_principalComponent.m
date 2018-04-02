@@ -142,6 +142,15 @@ grid on;
 
    Have a great time.
 %}
+
+%% Here is the curve that I created
+
+sContrast   = logspace(-2, -0.3, 5);
+sFreq       = logspace(0, 1.5, 8);
+fov         = 0.6;
+probCorrect = accuracywithPC(sContrast, sFreq, fov);
+
+
 %% Evaluate PSNR for different number of weights that should be used:
 
 %{ 
