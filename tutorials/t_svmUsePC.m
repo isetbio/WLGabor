@@ -22,13 +22,24 @@ function t_svmUsePC
 
 %% Here is the curve that I created
 
-sContrast   = [0, logspace(-2, -0.3, 5)];
+sContrast   = [0, logspace(-2, -0.1, 8)];
 sFreq       = logspace(0, 1.5, 8);
 fov         = 0.6;
 probCorrect = accuracywithPC(sContrast, sFreq, fov);
 
 %% plot Figure
-
+figure;
 stem3(sFreq, sContrast ,probCorrect,'linestyle','none')
+figure;
+hold all;
 
+contrast = cell(1,numel(sContrast));
+
+for i = 1 : numel(sContrast)
+    plot(sFreq, probCorrect(i,:),'-o')
+    contrast{i} = sprintf('Contrast = %.2f',sContrast(i));
+end
+legend(contrast);
+xlabel('Spatial Frequency')
+ylabel('Mean Correctness')
 end

@@ -13,7 +13,7 @@ correctness = zeros(numel(Contrast), numel(Freq));
 
 %%
 for c = 1 : numel(Contrast)
-    for f = 1 : numel(Freq)
+    for f = 1 : numel(Freq) 
     %%  Generate oisequence
     clear hparams
 
@@ -27,6 +27,7 @@ for c = 1 : numel(Contrast)
     hparams(1) = hparams(2);
     hparams(1).contrast = 0;
     sparams.fov = fov;
+    fprintf('Current Constrast: %.2f; current frequency: %.1f\n', Contrast(c), Freq(f));
     fprintf('Cycles per degree %.1f\n',hparams(1).freq/sparams.fov);
 
     % These are the scalar over time for the oi sequence
@@ -40,7 +41,7 @@ for c = 1 : numel(Contrast)
     
     %% Generate absorption for single trail WITH stimulus (multiple trails to be implemented)
 
-    nTrials = 1;
+    nTrials = 100;
     [absorptionsStim, cmStim, emPath] = ccAbsorptions(ois, nTrials);
     %% Generate absorption without stimulus
     hparams(2).contrast = 0;
@@ -59,8 +60,8 @@ for c = 1 : numel(Contrast)
     
     
     %% Calculate weights for PC
-    wgtsStim   = wgtsGenerate(absorptionsStim, cmStim);
-    wgtsNoStim = wgtsGenerate(absorptionsNoStim, cmNoStim);
+    wgtsStim   = wgtsGenerate(absorptionsStim, cmStim, nTrials);
+    wgtsNoStim = wgtsGenerate(absorptionsNoStim, cmNoStim, nTrials);
     
 
     %% Combine the stimuli and the labels
