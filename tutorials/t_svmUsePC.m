@@ -22,10 +22,42 @@ function t_svmUsePC
 
 %% Here is the curve that I created
 
-sContrast   = [0, logspace(-2, -1e-5, 10)];
-sFreq       = logspace(0, 1.5, 8);
-fov         = 0.6;
-probCorrect = accuracywithPC(sContrast, sFreq, fov);
+sContrast   = [0, logspace(-2, -1e-5, 2)];
+sFreq       = logspace(0, 1.5, 2);
+fov         = 1;
+[probCorrect, ois, emPathStim, emPathNoStim,...
+  absorptionsStim, absorptionsNoStim]= accuracywithPC(sContrast, sFreq, fov);
+
+%% Sanity check for emPath
+%{
+    c = 1; 
+    f = 1;
+    nTrials = size(emPathStim{c, f}, 1);
+    for i = 1 : nTrials
+        subplot(ceil(nTrials/3), 3, i);
+        xPosStim = emPathStim{c,f}(i,:,1);
+        yPosStim = emPathStim{c,f}(i,:,2);
+        plot(xPosStim, yPosStim,'-ko');
+        hold all;
+        xPosNoStim = emPathNoStim{c,f}(i,:,1);
+        yPosNoStim = emPathNoStim{c,f}(i,:,2);
+        plot(xPosNoStim, yPosNoStim,'-go');
+
+        plot(xPosStim - xPosNoStim, yPosStim - yPosNoStim, '-bo');
+    end
+%}
+
+%% Sanity check for absorption
+%{
+    c = 1;
+    f = 1;
+    nTrials = size(absorptionsStim{c, f}, 1);
+    for i = 1 : nTrials
+        subplot(ceil(nTrials/3), 3, i);
+        meanabsorption = mean(absorptionsStim{c, f}, 4);
+        imagesc(squeeze(meanabsorption(i,:,:)));colormap(gray); axis image;
+    end
+%}
 
 %% plot Figure
 figure;
