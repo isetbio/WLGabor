@@ -99,8 +99,8 @@ fixEMobj.computeForConeMosaic(cm, eyeMovementsPerTrial, ...
 %%  Invoke cone compute with eye movements
 
 empathTest  = fixEMobj.emPos;
- 
-empathTest = zeros(size(empathTest));
+
+empathTest = zeros(size(empathTest), 'single');
 if (numel(varargin) >= 1)
     empathTest = varargin{1};
 end
@@ -110,5 +110,5 @@ absorptions = cm.compute(ois, 'empath', empathTest);
 % cm.emPositions = empathTest;
 % absorptions = cm.compute(ois);
 emPath = empathTest;
-
+clear empathTest;
 end

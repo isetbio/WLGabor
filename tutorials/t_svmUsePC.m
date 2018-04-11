@@ -22,9 +22,9 @@ function t_svmUsePC
 
 %% Here is the curve that I created
 
-sContrast   = [0, logspace(-2, -1e-5, 2)];
-sFreq       = logspace(0, 1.5, 2);
-fov         = 1;
+sContrast   = 0;%[0, logspace(-2, -1e-5, 10)];
+sFreq       = 1;%logspace(0, 1.5, 8);
+fov         = 0.8;
 [probCorrect, ois, emPathStim, emPathNoStim,...
   absorptionsStim, absorptionsNoStim]= accuracywithPC(sContrast, sFreq, fov);
 

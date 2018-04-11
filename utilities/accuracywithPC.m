@@ -49,7 +49,7 @@ for c = 1 : numel(Contrast)
     %}
     %% Generate absorption for single trail WITH stimulus (multiple trails to be implemented)
 
-    nTrials = 10;
+    nTrials = 100;
     [absorptionsStim{c, f}, cmStim, emPath] = ccAbsorptions(ois{c, f}, nTrials);
     emPathStim{c, f} = emPath;
     %% Generate absorption without stimulus
