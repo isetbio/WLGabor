@@ -22,11 +22,11 @@ function t_svmUsePC
 
 %% Here is the curve that I created
 
-sContrast   = 0;%[0, logspace(-2, -1e-5, 10)];
-sFreq       = 1;%logspace(0, 1.5, 8);
-fov         = 0.8;
+sContrast   = [0, logspace(-2, -1e-5, 6)];
+sFreq       = logspace(0, 1.5, 6);
+fov         = 1;
 [probCorrect, ois, emPathStim, emPathNoStim,...
-  absorptionsStim, absorptionsNoStim]= accuracywithPC(sContrast, sFreq, fov);
+  absorptionsStim, absorptionsNoStim, wgtsAbsorptionStim, wgtsAbsorptionNoStim]= accuracywithPC(sContrast, sFreq, fov);
 
 %% Sanity check for emPath
 %{
@@ -49,11 +49,11 @@ fov         = 0.8;
 
 %% Sanity check for absorption
 %{
-    c = 1;
-    f = 1;
+    c = 11;
+    f = 4;
     nTrials = size(absorptionsStim{c, f}, 1);
-    for i = 1 : nTrials
-        subplot(ceil(nTrials/3), 3, i);
+    for i = 1 : 15
+        subplot(ceil(15/3), 3, i);
         meanabsorption = mean(absorptionsStim{c, f}, 4);
         imagesc(squeeze(meanabsorption(i,:,:)));colormap(gray); axis image;
     end
@@ -69,7 +69,7 @@ pp = cell(1,numel(sFreq));
 
 for i = 1 : numel(sFreq)
     plot(log10(sContrast), probCorrect(:,i),'-o')
-    pp{i} = sprintf('Frequency = %.2f',sFreq(i));
+    pp{i} = sprintf('Cycles per degree = %.2f',sFreq(i));
 end
 legend(pp);
 xlabel('Log Contrast')

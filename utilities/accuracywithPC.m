@@ -1,5 +1,5 @@
 function [correctness, ois, emPathStim, emPathNoStim,... 
-                absorptionsStim, absorptionsNoStim] = accuracywithPC(Contrast, Freq, fov)
+                absorptionsStim, absorptionsNoStim, wgtsAbsorptionStim, wgtsAbsorptionNoStim] = accuracywithPC(Contrast, Freq, fov)
 %
 % Calculate the correctness with a series of contrast and frequency with 
 % the principal component by using SVM
@@ -16,6 +16,8 @@ emPathStim   = cell(numel(Contrast), numel(Freq));
 emPathNoStim = cell(numel(Contrast), numel(Freq));
 absorptionsStim = cell(numel(Contrast), numel(Freq));
 absorptionsNoStim = cell(numel(Contrast), numel(Freq));
+wgtsAbsorptionStim = cell(numel(Contrast), numel(Freq));
+wgtsAbsorptionNoStim = cell(numel(Contrast), numel(Freq));
 %%
 for c = 1 : numel(Contrast)
     for f = 1 : numel(Freq) 
@@ -70,8 +72,8 @@ for c = 1 : numel(Contrast)
     
     
     %% Calculate weights for PC
-    wgtsStim   = wgtsGenerate(absorptionsStim{c, f}, cmStim, nTrials);
-    wgtsNoStim = wgtsGenerate(absorptionsNoStim{c, f}, cmNoStim, nTrials);
+    [wgtsStim, wgtsAbsorptionStim{c, f}]      = wgtsGenerate(absorptionsStim{c, f}, cmStim, nTrials);
+    [wgtsNoStim, wgtsAbsorptionNoStim{c, f}]  = wgtsGenerate(absorptionsNoStim{c, f}, cmNoStim, nTrials);
     
 
     %% Combine the stimuli and the labels

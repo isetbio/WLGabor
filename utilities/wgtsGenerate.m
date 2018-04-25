@@ -1,4 +1,4 @@
-function wgts = wgtsGenerate(absorptions, cm, nTrials)
+function [wgts, wgtsAbsorption] = wgtsGenerate(absorptions, cm, nTrials)
     wgts = [];
     for i = 1 : nTrials
         %% Vectorize the absorption
@@ -27,12 +27,13 @@ function wgts = wgtsGenerate(absorptions, cm, nTrials)
 
         % wgts has the size of [steps * nPC]
         wgtsTemp = absorptionVec*thesePC;
+        wgtsAbsorption = wgtsTemp * thesePC';
         wgtsMean = mean(wgtsTemp,1);
         wgts = [wgts;wgtsMean];
         %{
           Check the correctness of weight calculation with 
 
-          absorptionTemp = wgts * thesePC';
+          absorptionTemp = wgtsTemp * thesePC';
           nFrame = 30;
           approx = reshape(absorptionTemp(nFrame,:),cm.rows,cm.cols);
           vcNewGraphWin; imagesc(approx); colormap(gray); axis image;
