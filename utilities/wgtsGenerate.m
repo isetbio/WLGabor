@@ -1,5 +1,6 @@
 function [wgts, wgtsAbsorption] = wgtsGenerate(absorptions, cm, nTrials)
     wgts = [];
+    wgtsAbsorption = [];
     for i = 1 : nTrials
         %% Vectorize the absorption
         absorptionVec = permute(squeeze(absorptions(i,:,:,:)),[1 2 3]);
@@ -27,7 +28,8 @@ function [wgts, wgtsAbsorption] = wgtsGenerate(absorptions, cm, nTrials)
 
         % wgts has the size of [steps * nPC]
         wgtsTemp = absorptionVec*thesePC;
-        wgtsAbsorption = wgtsTemp * thesePC';
+        wgtsAbsorptionTemp = wgtsTemp * thesePC';
+        wgtsAbsorption=[wgtsAbsorption;wgtsAbsorptionTemp];
         wgtsMean = mean(wgtsTemp,1);
         wgts = [wgts;wgtsMean];
         %{

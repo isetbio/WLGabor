@@ -22,8 +22,8 @@ function t_svmUsePC
 
 %% Here is the curve that I created
 
-sContrast   = [0, logspace(-2, -1e-5, 6)];
-sFreq       = logspace(0, 1.5, 6);
+sContrast   = 0.02;%logspace(-2.5, -1e-5, 4);
+sFreq       = 4; %logspace(0, 1.5, 4);
 fov         = 1;
 [probCorrect, ois, emPathStim, emPathNoStim,...
   absorptionsStim, absorptionsNoStim, wgtsAbsorptionStim, wgtsAbsorptionNoStim]= accuracywithPC(sContrast, sFreq, fov);
@@ -47,16 +47,30 @@ fov         = 1;
     end
 %}
 
-%% Sanity check for absorption
+%% Sanity check for original absorption and SVD reconstruction
 %{
-    c = 11;
-    f = 4;
+    c = 1;
+    f = 1;
     nTrials = size(absorptionsStim{c, f}, 1);
     for i = 1 : 15
         subplot(ceil(15/3), 3, i);
         meanabsorption = mean(absorptionsStim{c, f}, 4);
         imagesc(squeeze(meanabsorption(i,:,:)));colormap(gray); axis image;
     end
+%}
+%{
+    Check the correctness of weight calculation with 
+    c = 1;
+    f = 1;
+    [Trials, rows, cols, Frames] = size(absorptionsStim{c, f});
+    nFrame = 100;
+    nTrial = 55;
+    wgtsTemp = wgtsAbsorptionStim{c, f};
+    absorptionsStimTemp = absorptionsStim{c, f};
+    approx = reshape(wgtsTemp((nTrial - 1) * 100 + nFrame,:,:), rows, cols);
+    vcNewGraphWin; imagesc(approx); colormap(gray); axis image;
+    actual = reshape(absorptionsStimTemp(nTrial,:, :, nFrame), rows, cols);
+    vcNewGraphWin; imagesc(approx); colormap(gray); axis image;
 %}
 
 %% plot Figure

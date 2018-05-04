@@ -27,7 +27,7 @@ for c = 1 : numel(Contrast)
     % Make the time varying part
     hparams(2) = harmonicP;
     hparams(2).freq      = Freq(f);     % Cycles per field of view
-    hparams(2).GaborFlag = 0.2;
+    hparams(2).GaborFlag = 0;
     hparams(2).contrast  = Contrast(c);
 
     % Make the constant part
@@ -40,8 +40,8 @@ for c = 1 : numel(Contrast)
     % These are the scalar over time for the oi sequence
     nTimeSteps = 100;
     tSD = 30;
-    stimWeights = ieScale(fspecial('gaussian',[1,nTimeSteps],tSD),0,1);
-
+    %stimWeights = ieScale(fspecial('gaussian',[1,nTimeSteps],tSD),0,1);
+    stimWeights = ones(1, nTimeSteps);
     % Build the sequence
     ois{c, f} = oisCreate('harmonic','blend',stimWeights, ...
         'testParameters',hparams,'sceneParameters',sparams);
