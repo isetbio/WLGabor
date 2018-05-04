@@ -22,11 +22,13 @@ function t_svmUsePC
 
 %% Here is the curve that I created
 
-sContrast   = 0.02;%logspace(-2.5, -1e-5, 4);
-sFreq       = 4; %logspace(0, 1.5, 4);
+sContrast   = 0.1;  % logspace(-2.5, -1e-5, 4);
+sFreq       = 4;    % logspace(0, 1.5, 4);
 fov         = 1;
 [probCorrect, ois, emPathStim, emPathNoStim,...
-  absorptionsStim, absorptionsNoStim, wgtsAbsorptionStim, wgtsAbsorptionNoStim]= accuracywithPC(sContrast, sFreq, fov);
+  absorptionsStim, absorptionsNoStim, ...
+  wgtsAbsorptionStim, wgtsAbsorptionNoStim]= ...
+  accuracywithPC(sContrast, sFreq, fov);
 
 %% Sanity check for emPath
 %{
