@@ -1,4 +1,4 @@
-function t_svmUsePC
+% function t_svmUsePC
 %% Here is a curve we want
 
 %{

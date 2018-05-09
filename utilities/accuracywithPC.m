@@ -101,8 +101,8 @@ for c = 1 : numel(Contrast)
             
             
         %% Calculate weights for PC
-        [wgtsStim, wgtsAbsorptionStim{c, f}]      = wgtsGenerate(absorptionsStim{c, f}, cmStim);
-        [wgtsNoStim, wgtsAbsorptionNoStim{c, f}]  = wgtsGenerate(absorptionsNoStim{c, f}, cmNoStim);
+        wgtsStim   = wgtsGenerate(absorptionsStim{c, f}, cmStim);
+        wgtsNoStim = wgtsGenerate(absorptionsNoStim{c, f}, cmNoStim);
         
             
         %% Combine the stimuli and the labels

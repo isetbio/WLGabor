@@ -1,18 +1,22 @@
-function [wgts, wgtsAbsorption] = wgtsGenerate(absorptions, cm, varargin)
+function wgts = wgtsGenerate(absorptions, cm, varargin)
 % Calculate the weights of the spatial principal components of the
 % absorptions
 %
 % Description
-%  For each trial, we make the mean absorption over time
-%  Then we 
+%  For each trial, we calculate the principal components of the
+%  spatial cone absorption pattern, with the PCs derived from the
+%  muultiple time steps. We then calculate the PC weights at each time
+%  step, and return the mean of these weights.
 %  
 % Inputs
 %  absorptions - 4D vector of cone [trial,row,col,time] absorptions
 %  cm - cone mosaic
-%  nTrials - Isn't this just the size the first dimension of
-%            absorptions?
+%
 % Optional key/val parameters
 %   N/A
+%
+% Returns:
+%   wgts - Returned temporal series of weights for the absorptions
 %
 % Zheng Liu
 
@@ -30,6 +34,7 @@ nTrials = size(absorptions,1);
 
 % wgtsAbsorption = [];
 wgts = zeros(nTrials,nPC);
+% wgtsAbsorption = zeros(nTrials,nPC);
 
 for ii = 1 : nTrials
     % Vectorize the absorption for this trial.  It becomes (r,c,time)
@@ -58,11 +63,8 @@ for ii = 1 : nTrials
     
     % wgts has the size of [steps * nPC]
     wgtsTemp           = absorptionVec * thesePC;
-    wgtsAbsorptionTemp = wgtsTemp * thesePC';
-    
-    wgtsAbsorption = [wgtsAbsorption ; wgtsAbsorptionTemp];
     wgts(ii,:) = mean(wgtsTemp,1);
-
+    
     %{
           Check the correctness of weight calculation with
 
