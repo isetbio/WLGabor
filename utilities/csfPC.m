@@ -24,7 +24,7 @@ function [PC, samples] = csfPC(sFreq,sContrast, fov, nPCs)
 
 sFreq = 4;
 fov  = 1;
-nPCs = 200;
+nPCs = 20;
 
 % sFreq, sContrast, fov, nPCs
 
@@ -117,8 +117,8 @@ samples = [RGB2XWFormat(meanStim), RGB2XWFormat(meanNoise)];
 PC = U;
 
     %{
-        sample_rec = PC * wgts_two;
-        nframe = 110;
+        sample_rec = PC(:, 1:nPCs) * wgts_two;
+        nframe = 120;
         vcNewGraphWin;imagesc(reshape(sample_rec(:,nframe),cmStim.rows,cmStim.cols))
         vcNewGraphWin;imagesc(reshape(samples(:,nframe),cmStim.rows,cmStim.cols))
     %}
