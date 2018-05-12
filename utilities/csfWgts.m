@@ -1,18 +1,33 @@
-function wgts = csfWgts(contrast, freq)
+function wgts = csfWgts(freq, varargin)
 % Calculate the PC weights for each (sContrast, sFreq). Used to 
 % confirm the PC calculate from (sContrast = 1, sFreq = 4) can be used
 % for all (sContrast, sFreq) pair
-% 
+%
+%  
+%
+% Examples:
+%    freq = 4;
+%    wgts = csfWgts(freq,'contrast',0.5,'n pcs',3);
+%
+
+%% Parse the inputs
+p = inputParser;
+
+% Removes spaces and forces to lower case
+varargin = ieParamFormat(varargin);
+
+p.addRequired('freq',@isscalar);
+p.addParameter('npcs',2,@isscalar);
+p.addParameter('contrast',1.0,@isscalar);
+
+p.parse(freq,varargin{:});
+contrast = p.Results.contrast;
+nPCs     = p.Results.npcs;
 
 %% Initiation parameters
-nPCs = 2;
 
-wgts = cell(size(contrast,2), size(freq, 2));
-%% Calculate the PC for sContrast = 1, sFreq = 4
-sFreq = 4;
-sContrast = 1;
-fov  = 1;
-PC = csfPC(sFreq, sContrast, fov, nPCs);
+wgts = cell(numel(contrast), numel(freq));
+
 %% Calculate the wgts for another (more in the future) (C, F) with the PC above.
 for c = 1 : size(contrast, 2)
     for f = 1 : size(freq, 2)
