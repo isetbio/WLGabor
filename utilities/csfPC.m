@@ -1,4 +1,4 @@
-function PCs = csfPC(template, nTrials)
+function PCs = csfPC(templateHC, templateZC, nTrials)
 % Calculate the principal components from signal and noise trials
 %
 %  We pre-compute the likely stimuli,  The logic is to use a high
@@ -43,21 +43,30 @@ PC1(:,1)'*PC2(:,1)
 
 p = inputParser;
 
-p.addRequired('template',@isnumeric);
-p.parse(template);
+p.addRequired('templateHC',@isnumeric);
+p.addRequired('templateZC',@isnumeric);
+p.addRequired('nTrials', @isnumeric);
+p.parse(templateHC, templateZC, nTrials);
 
-template = p.Results.template;
+templateHC = p.Results.templateHC;
+templateZC = p.Results.templateZC;
+nTrials    = p.Results.nTrials;
 
+%% Vectorize the template
+
+templateHCRep = repmat(templateHC, [1, 1, nTrials / 2]);
+templateZCRep = repmat(templateZC, [1, 1, nTrials / 2]);
+templateHCVec = RGB2XWFormat(templateHCRep);
+templateZCVec = RGB2XWFormat(templateZCRep);
+templateRep = [templateHCVec templateZCVec];
 %% Use the template to calculate the PCs
 
-templateVec = RGB2XWFormat(template);
-templateRep = repmat(templateVec, 1, nTrials);
 [PCs, ~, ~] = svd(templateRep,'econ'); 
 %{
     wgts = PCs' * templateRep;
     sample = PCs(:,1:2) * wgts(1:2,:);
-    anycopy = 50;
-    [row, col] = size(template);
+    anycopy = 80;
+    [row, col] = size(templateHC);
     vcNewGraphWin; imagesc(reshape(sample(:,anycopy), row, col));
 %}
 end

@@ -6,8 +6,7 @@
 % ZL
 
 %% Parameter initialization
-digits(10);
-sFreq         = 6; % logspace(0, 1.5, 1);
+sFreq         = 16; % logspace(0, 1.5, 1);
 nPCs          = 2;
 fov           = 1;
 sContrast     = 1;
@@ -31,6 +30,7 @@ stimWeights = ones(1, nTimeSteps);
 ois = oisCreate('harmonic', 'blend', stimWeights, ...
     'testParameters', hparams, 'sceneParameters', sparams);
 % ois.visualize('movie illuminance');
+
 %% Set up cone mosaic parameters
 
 integrationTime = 0.005;
@@ -47,18 +47,26 @@ cm.setSizeToFOV(fovDegs);
 % EM path is set to be zero (meaning no eyemovement for now). Will 
 % implement the fixEM in the future.
 empath = zeros(nTrials, nTimeSteps, 2);
-%% Calculate the PCs for the high contrast example of the stimulus
+
+%% Calculate the absorption template for the high contrast example of the stimulus
 
 cm.noiseFlag = 'none';
-template     = squeeze(cm.compute(ois));
+templateHighContrast     = mean(squeeze(cm.compute(ois)), 3);
 % vcNewGraphWin; imagesc(template); colormap(gray);
 
-%Calculate the PCs (the whole sets of principal components)
-PCs = csfPC(template, nTrials);
+%% Calculate the absorption template for zero contrast of the stimulus
+hparams(2).contrast  = 0.0;
+ois = oisCreate('harmonic', 'blend', stimWeights, ...
+    'testParameters', hparams, 'sceneParameters', sparams);
+templateZeroContrast     = mean(squeeze(cm.compute(ois)), 3);
+
+%% Calculate the PCs (the whole sets of principal components)
+PCs = csfPC(templateHighContrast, templateZeroContrast, nTrials);
 
 %% Create the test stimulus at a lower contrast level
+cm.noiseFlag = 'random';
 
-hparams(2).contrast  = 0.1;
+hparams(2).contrast  = 0.001;
 ois = oisCreate('harmonic', 'blend', stimWeights, ...
     'testParameters', hparams, 'sceneParameters', sparams);
 % ois.visualize('movie illuminance');
@@ -80,13 +88,13 @@ nPC = 2;
 
 wgtsStimulus = csfWgts(meanabsorptionsStimulus, PCs, nPC);
 
-%%
+%% Create a "blank" pattern without stimulus
 hparams(2).contrast  = 0.0;
 ois = oisCreate('harmonic', 'blend', stimWeights, ...
     'testParameters', hparams, 'sceneParameters', sparams);
 % ois.visualize('movie illuminance');
 
-% Eye movements?
+% No eyemovements for now.
 absorptionsNoise = cm.compute(ois, 'empath', empath);
 meanabsorptionsNoise = mean(absorptionsNoise, 4);
 
@@ -97,23 +105,13 @@ wgtsNoise = csfWgts(meanabsorptionsNoise, PCs, nPC);
 
 %% Process SVM
 
-correctness   = zeros(numel(Contrast), numel(Freq));
+% correctness   = zeros(numel(Contrast), numel(Freq)); will be implemented
+% in the future.
 
-stmlType = {'Yes', 'No'};
-classStmls = cell(size(wgts{1, 1}, 2),1);
+classStmls = [ones(size(wgtsStimulus, 2), 1); zeros(size(wgtsNoise, 2), 1)];
 
-% Put a comment here
-for i = 1 : size(wgts{1, 1}, 2) / 2
-    classStmls{i} = stmlType{1};
-    classStmls{i + size(wgts{1, 1}, 2) / 2} = stmlType{2};
-end
+dataStmls = [wgtsStimulus'; wgtsNoise'];
+meanCorrect = svmProcess(dataStmls, classStmls);
 
-for c = 1 : size(Contrast, 2)
-    for f = 1 : size(Freq, 2)
-        dataStmls = wgts{c, f}';
-        meanCorrect = svmProcess(dataStmls, classStmls);
-        correctness(c, f) = meanCorrect;
-    end
-end
 
 %%

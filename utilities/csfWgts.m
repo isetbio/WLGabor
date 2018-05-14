@@ -38,7 +38,7 @@ wgts = wgtsWhole(1:nPC, :);
     PCs(:,1)' * thisPC(:,1)
 %}
 %{
-    sample =  * absorptionsVec;
+    sample =  PCs(:, 1:nPC) * wgtsWhole(1:nPC, :);
     thisTrial = 1;
     row = vecLength^0.5;
     col = row;
