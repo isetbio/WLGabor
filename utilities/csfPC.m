@@ -65,7 +65,7 @@ templateRep = [templateHCVec templateZCVec];
 %{
     wgts = PCs' * templateRep;
     sample = PCs(:,1:2) * wgts(1:2,:);
-    anycopy = 80;
+    anycopy = 30;
     [row, col] = size(templateHC);
     vcNewGraphWin; imagesc(reshape(sample(:,anycopy), row, col));
 %}
