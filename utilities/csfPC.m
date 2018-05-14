@@ -1,4 +1,4 @@
-function [PC, samples] = csfPC(sFreq, fov)
+function PCs = csfPC(template, nTrials)
 % Calculate the principal components from signal and noise trials
 %
 %  We pre-compute the likely stimuli,  The logic is to use a high
@@ -39,31 +39,25 @@ grid on; axis equal; identityLine;
 PC1(:,1)'*PC2(:,1)
 
 %}
+%% Parse the inputs
 
+p = inputParser;
 
-%% Put the mean absorptions from all trials into one big matrix and calculate the PCs
+p.addRequired('template',@isnumeric);
+p.parse(template);
 
-samples = [RGB2XWFormat(meanStim), RGB2XWFormat(meanNoise)];
+template = p.Results.template;
 
-[U, ~, ~] = svd(samples,'econ');
-    %{
-      nPCs = 50;
-      [A, B, C] = svd(samples, 'econ');
-      wgts = A' * samples;
-      wgts_two = wgts(1:nPCs,:);
-      
-    %}
-PC = U;
+%% Use the template to calculate the PCs
 
-    %{
-        sample_rec = PC(:, 1:nPCs) * wgts_two;
-        nframe = 120;
-        vcNewGraphWin;imagesc(reshape(sample_rec(:,nframe),cmStim.rows,cmStim.cols))
-        vcNewGraphWin;imagesc(reshape(samples(:,nframe),cmStim.rows,cmStim.cols))
-    %}
-% sValues = diag(S);
-% vcNewGraphWin; semilogy(sValues(1:4));
-% vcNewGraphWin; imagesc(reshape(PC(:,1),cmStim.rows,cmStim.cols))
-% vcNewGraphWin; imagesc(reshape(PC(:,2),cmStim.rows,cmStim.cols))
-
+templateVec = RGB2XWFormat(template);
+templateRep = repmat(templateVec, 1, nTrials);
+[PCs, ~, ~] = svd(templateRep,'econ'); 
+%{
+    wgts = PCs' * templateRep;
+    sample = PCs(:,1:2) * wgts(1:2,:);
+    anycopy = 50;
+    [row, col] = size(template);
+    vcNewGraphWin; imagesc(reshape(sample(:,anycopy), row, col));
+%}
 end

@@ -1,11 +1,12 @@
 % Explore the svm classifier on the PC components for harmonic
 % stimuli.
-%
+% The steps comes
 % 
 %
 % ZL
 
 %% Parameter initialization
+digits(10);
 sFreq         = 6; % logspace(0, 1.5, 1);
 nPCs          = 2;
 fov           = 1;
@@ -43,15 +44,17 @@ cm.integrationTime = ois.timeStep;
 fovDegs = max(oiGet(ois.oiFixed,'fov') - 0.2, 0.2);  % Degrees
 cm.setSizeToFOV(fovDegs);
 
+% EM path is set to be zero (meaning no eyemovement for now). Will 
+% implement the fixEM in the future.
+empath = zeros(nTrials, nTimeSteps, 2);
 %% Calculate the PCs for the high contrast example of the stimulus
 
 cm.noiseFlag = 'none';
-template     = cm.compute(ois);
-vcNewGraphWin; imagesc(squeeze(template)); colormap(gray);
+template     = squeeze(cm.compute(ois));
+% vcNewGraphWin; imagesc(template); colormap(gray);
 
-% PC = csfPC(absorptions);
-% PC = PC(:,1:2);
-% PC = csfPC(ois, cm);
+%Calculate the PCs (the whole sets of principal components)
+PCs = csfPC(template, nTrials);
 
 %% Create the test stimulus at a lower contrast level
 
@@ -61,11 +64,21 @@ ois = oisCreate('harmonic', 'blend', stimWeights, ...
 % ois.visualize('movie illuminance');
 
 % Eye movements?
-absorptions = cm.compute(ois);
 
+absorptions = cm.compute(ois, 'empath', empath);
+meanabsorptionsStimulus = mean(absorptions, 4);
+%{
+    thisTrial = 10;
+    thisFrame = 5;
+    vcNewGraphWin; imagesc(squeeze(absorptions(thisTrial, :, :, thisFrame))); colormap(gray);
+
+%}
+
+%% Set up for PCs parameters
+nPC = 2;
 %% Calculate the wgts for the absorptions
 
-wgtsStimulus = csfWgts(absorptions, template(:));
+wgtsStimulus = csfWgts(meanabsorptionsStimulus, PCs, nPC);
 
 %%
 hparams(2).contrast  = 0.0;
@@ -74,9 +87,11 @@ ois = oisCreate('harmonic', 'blend', stimWeights, ...
 % ois.visualize('movie illuminance');
 
 % Eye movements?
-absorptionsNoise = cm.compute(ois);
+absorptionsNoise = cm.compute(ois, 'empath', empath);
+meanabsorptionsNoise = mean(absorptionsNoise, 4);
 
-wgtsNoise = csfWgts(absorptions, template(:));
+%% Calculate the wgts for the Noise
+wgtsNoise = csfWgts(meanabsorptionsNoise, PCs, nPC);
 
 % Let's plot the weights for the stimulus and no stimulus conditions
 
