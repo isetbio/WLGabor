@@ -1,9 +1,17 @@
 % Explore the svm classifier on the PC components for harmonic
 % stimuli.
-% The steps comes
+% 
+% Description:
+% First we calculate the principal components with the set of absorptions 
+% that have both high contrast lavel and zero contrast level. Then 
+% we change the spatial frequency and the contrast level of the stimulus.
+% By using the principal components we get the weights for each 
+% (freq, contrast) pair. The two biggest weights are used to represent
+% the absorptions. Finally we applied SVM on the weights from each trails
+% for every (freq, contrast) pair.
 % 
 %
-% ZL
+% ZL/BW, 2018
 %%
 ieInit;
 %% Parameter initialization
@@ -12,8 +20,8 @@ nPCs          = 2;
 fov           = 1;
 sContrast     = 1;
 
-scanFreq      = logspace(0, 1.5, 5);
-scanContrast  = logspace(-3.5, 0, 5);
+scanFreq      = 4 %logspace(0, 1.5, 5);
+scanContrast  = 1 %logspace(-3.5, 0, 5);
 
 accuracy = zeros(numel(scanFreq), numel(scanContrast));
 %% Set up the stimulus parameters
@@ -34,7 +42,7 @@ integrationTime = 0.005;
 sampleTimes = ((1:nTimeSteps) - 1) * integrationTime;   % Five ms integration time
 nTrials    = 100;
 
-% EM path is set to be zero (meaning no eyemovement for now). Will 
+% EM path is set to be ZERO (meaning no eyemovement for now). Will 
 % implement the fixEM in the future.
 empath = zeros(nTrials, nTimeSteps, 2);
 %% Loop over each frequency and contrast level
@@ -64,7 +72,7 @@ for f = 1 : numel(scanFreq)
 
     cm.noiseFlag = 'none';
     templateHighContrast     = mean(squeeze(cm.compute(ois)), 3);
-    % vcNewGraphWin; imagesc(template); colormap(gray);
+    % vcNewGraphWin; imagesc(templateHighContrast); colormap(gray);
     
     
     %% Calculate the absorption template for zero contrast of the stimulus
@@ -92,9 +100,9 @@ for f = 1 : numel(scanFreq)
     %% Calculate the wgts for the Noise
     sprintf('Calculating the Noise PC weights')
     
-    wgtsNoise = csfWgts(meanabsorptionsNoise, PCs, nPCs);
+    wgtsNoiseWhole = csfWgts(meanabsorptionsNoise, PCs);
+    wgtsNoise      = wgtsNoiseWhole(1:nPCs, :);
 
-    
     %% The second for loop to scan contrast level
     
     for c = 1 : numel(scanContrast)
@@ -113,16 +121,19 @@ for f = 1 : numel(scanFreq)
             thisTrial = 10;
             thisFrame = 5;
             vcNewGraphWin; imagesc(squeeze(absorptions(thisTrial, :, :, thisFrame))); colormap(gray);
-
         %}
         
         %% Calculate the wgts for the absorptions
         sprintf('Calculating the stimulus PC weights')
         
-        wgtsStimulus = csfWgts(meanabsorptionsStimulus, PCs, nPCs);
-
-        % Let's plot the weights for the stimulus and no stimulus conditions
-        
+        wgtsStimulusWhole = csfWgts(meanabsorptionsStimulus, PCs);
+        wgtsStimulus      = wgtsStimulusWhole(1:nPCs, :);
+        %{
+            figure;
+            hold all;
+            plot(abs(wgtsStimulusWhole(:,1)),'-o'); plot(abs(wgtsNoiseWhole(:,1)), '-o');
+            legend('Stimulus', 'NoStimulus')
+        %}
         %% Process SVM
 
         % correctness   = zeros(numel(Contrast), numel(Freq)); will be implemented
@@ -135,7 +146,6 @@ for f = 1 : numel(scanFreq)
         accuracy(f, c) = meanCorrect;
     end
 end
-
 
 %% Plot the results
 

@@ -1,6 +1,7 @@
 function PCs = csfPC(templateHC, templateZC, nTrials)
 % Calculate the principal components from signal and noise trials
-%
+% 
+%  Description:
 %  We pre-compute the likely stimuli,  The logic is to use a high
 %  contrast stimulus and make many samples of the mean absoprtion
 %  pattern.  Then use a noise stimulus and make many samples.  Then
@@ -16,7 +17,8 @@ function PCs = csfPC(templateHC, templateZC, nTrials)
 %  choose to use the PCs with the contrast = 1 (for now), and calculate the
 %  weight 
 %
-%  When there are no eye movements, 
+%  
+%  
 %
 %% ZL/BW
 

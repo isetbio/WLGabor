@@ -1,13 +1,14 @@
-function wgts = csfWgts(absorptions, PCs, nPC)
+function wgtsWhole = csfWgts(absorptions, PCs)
 % Calculate the PC weights for each (sContrast, sFreq). Used to 
 % confirm the PC calculate from (sContrast = 1, sFreq = 4) can be used
 % for all (sContrast, sFreq) pair
+% 
+% Description: 
+%   The weights are calculated simply by multiplying the transpose of the
+%   PCs with the absorpitons matrix.
+% 
 %
-%  
-%
-% Examples:
-%    freq = 4;
-%    wgts = csfWgts(freq,'contrast',0.5,'n pcs',3);
+% 
 %
 
 %% Parse the inputs
@@ -15,22 +16,20 @@ p = inputParser;
 
 p.addRequired('absorptions',@isnumeric);
 p.addRequired('PCs',@isnumeric);
-p.addRequired('nPC',@isnumeric);
 
-p.parse(absorptions, PCs, nPC);
+p.parse(absorptions, PCs);
 absorptions = p.Results.absorptions;
 PCs = p.Results.PCs;
-nPC     = p.Results.nPC;
-%% Initialte parameters
-nTrials = size(absorptions, 1);
-vecLength = size(PCs, 1);
+
 %% Vecterize the absorptions
 absorptions = permute(absorptions, [2 3 1]);
 absorptionsVec = RGB2XWFormat(absorptions);
 
 %% Calculate the wgts
 wgtsWhole = PCs' * absorptionsVec;
-wgts = wgtsWhole(1:nPC, :);
+%{
+    plot(abs(wgtsWhole(:,1)), '-o')
+%}
 
 %{
     % Check if the PCs and thisPC can be considered as the "Same"
@@ -38,6 +37,7 @@ wgts = wgtsWhole(1:nPC, :);
     PCs(:,1)' * thisPC(:,1)
 %}
 %{
+    nPC = 2;
     sample =  PCs(:, 1:nPC) * wgtsWhole(1:nPC, :);
     thisTrial = 1;
     row = vecLength^0.5;
@@ -47,8 +47,5 @@ wgts = wgtsWhole(1:nPC, :);
     vcNewGraphWin; imagesc(squeeze(reshape(absorptionsVec(:,thisTrial), row,...
     col)));
 %}
-
-
-
 
 end
