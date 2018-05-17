@@ -20,8 +20,8 @@ nPCs          = 2;
 fov           = 1;
 sContrast     = 1;
 
-scanFreq      = 4 %logspace(0, 1.5, 5);
-scanContrast  = 1 %logspace(-3.5, 0, 5);
+scanFreq      = 6; %logspace(0, 1.5, 5);
+scanContrast  = 0.5; %logspace(-3.5, 0, 5);
 
 accuracy = zeros(numel(scanFreq), numel(scanContrast));
 %% Set up the stimulus parameters
