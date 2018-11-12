@@ -13,7 +13,7 @@ sContrast     = 1;
 
 % Save the generated data?
 saveFlag = true;
-saveName = 'testSet';
+saveName = 'freq_8_contrast_00005';
 % accuracy = zeros(numel(scanFreq), numel(scanContrast));
 
 %% Set up the stimulus parameters
@@ -42,9 +42,9 @@ nTrials    = 100;
 rng(1); % Set the random seed
 
 % Scan for test set
-scanFreq = logspace(0.1, 1.5441, 5);
-scanContrast = logspace(-3.5, -2, 10);
-numSamples = 10;
+scanFreq = 8; % logspace(0.1, 1.5441, 5);
+scanContrast = 0.005;% logspace(-3.5, -1, 10);
+numSamples = 1000;
 
 nImages = length(scanFreq)*length(scanContrast)*numSamples;
 
@@ -56,11 +56,23 @@ zCoeffs = VirtualEyes(nImages,measPupilMM);
 %% Generate images
 
 % testTemp = zeros(249,249,length(scanFreq), 2*nImages);
-testTemp = zeros(249,249, 2*nImages);
-testNoNoise = zeros(249,249,2*nImages);
-testLabels = zeros(2*nImages,1);
-testContrasts = zeros(2*nImages,1);
-testFreqs = zeros(2*nImages,1);
+% With stimulus and noise
+imgNoiseStimulus = zeros(249,249, nImages);
+imgNoiseNoStimulus = zeros(249,249, nImages);
+
+% With stimulus and with no noise
+imgNoNoiseStimulus = zeros(249,249,nImages);
+imgNoNoiseNoStimulus = zeros(249,249,nImages);
+
+% Labels
+imgLabelsStimulus = zeros(nImages,1);
+imgLabelsNoStimulus = zeros(nImages,1);
+
+% Contrast
+imgContrasts = zeros(nImages,1);
+
+% Frequencies
+imgFreqs = zeros(nImages,1);
 
 k = 1;
 ii = 1;
@@ -110,16 +122,16 @@ for ff = 1 : length(scanFreq)
             %% Calculate the absorption template for the high contrast example of the stimulus
             
             cm.noiseFlag = 'random';
-            testTemp(:,:,k) = mean(squeeze(cm.compute(ois)), 3);
-            testLabels(k) = 1;
-            testContrasts(k) = scanContrast(cc);
-            testFreqs(k) = scanFreq(ff);
+            imgNoiseStimulus(:,:,k) = mean(squeeze(cm.compute(ois)), 3);
+            imgLabelsStimulus(k) = 1;
+            imgContrasts(k) = scanContrast(cc);
+            imgFreqs(k) = scanFreq(ff);
             
             % Calculate without noise
             cm.noiseFlag = 'none';
-            testNoNoise(:,:,k) = mean(squeeze(cm.compute(ois)), 3);
+            imgNoNoiseStimulus(:,:,k) = mean(squeeze(cm.compute(ois)), 3);
             
-            k = k + 1;
+            
             
             %% Create a "blank" pattern without stimulus
             hparams(2).contrast  = 0.0;
@@ -129,14 +141,14 @@ for ff = 1 : length(scanFreq)
             % ois.visualize('movie illuminance');
             
             cm.noiseFlag = 'random';
-            testTemp(:,:,k) = mean(squeeze(cm.compute(ois)), 3);
-            testLabels(k) = 0;
-            testContrasts(k) = scanContrast(cc);
-            testFreqs(k) = scanFreq(ff);
+            imgNoiseNoStimulus(:,:,k) = mean(squeeze(cm.compute(ois)), 3);
+            imgLabelsNoStimulus(k) = 0;
+            imgContrasts(k) = scanContrast(cc);
+            imgFreqs(k) = scanFreq(ff);
             
             % Calculate without noise
             cm.noiseFlag = 'none';
-            testNoNoise(:,:,k) = mean(squeeze(cm.compute(ois)), 3);
+            imgNoNoiseNoStimulus(:,:,k) = mean(squeeze(cm.compute(ois)), 3);
             
             k = k+1;
             
@@ -145,29 +157,51 @@ for ff = 1 : length(scanFreq)
     end
 end
 
+
+%% Exam the mean cone absorption
+meanImgNoiseStimulus = mean(imgNoiseStimulus, 3);
+meanImgNoNoiseStimulus = mean(imgNoNoiseStimulus, 3);
+meanImgNoiseNoStimulus = mean(imgNoiseNoStimulus, 3);
+meanImgNoNoiseNoStimulus = mean(imgNoNoiseNoStimulus, 3);
+
+figure(1); imagesc(meanImgNoiseStimulus, [6 8]); colorbar; title('meanImgNoiseStimulus');
+figure(2); imagesc(meanImgNoNoiseStimulus, [6 8]); colorbar; title('meanImgNoNoiseStimulus');
+
+figure(3); imagesc(meanImgNoiseNoStimulus, [6 8]); colorbar; title('meanImgNoiseNoStimulus');
+figure(4); imagesc(meanImgNoNoiseNoStimulus, [6 8]); colorbar; title('meanImgNoNoiseNoStimulus');
+
+figure(5); imagesc(meanImgNoiseStimulus - meanImgNoiseNoStimulus, [-5 5]); colorbar; title('mean Noise sub');
+figure(6); imagesc(meanImgNoNoiseStimulus - meanImgNoNoiseNoStimulus, [-0.02 0.02]);colorbar; title('mean No Noise sub');
 %% Crop
-testImages = testTemp(1:224,1:224,:);
-testImages_NoNoise = testNoNoise(1:224,1:224,:);
+imgNoiseStimulus = imgNoiseStimulus(:,:,:);
+imgNoiseNoStimulus = imgNoiseNoStimulus(:,:,:);
+imgNoNoiseStimulus = imgNoNoiseStimulus(:, :,:);
+imgNoNoiseNoStimulus = imgNoNoiseNoStimulus(:, :,:);
 %% Save everything
 
 if(saveFlag)
     currDate = datestr(now,'mm-dd-yy_HH_MM');
     save(sprintf('%s_%s.mat',saveName,currDate),...
-        'testImages',...
-        'testImages_NoNoise',...
-        'testLabels',...
-        'testContrasts',...
-        'testFreqs');
+        'imgNoiseStimulus',...
+        'imgNoiseNoStimulus',...
+        'imgNoNoiseStimulus',...
+        'imgNoNoiseNoStimulus',...
+        'imgLabelsStimulus',...
+        'imgLabelsNoStimulus',...
+        'imgContrasts',...
+        'imgFreqs');
 end
+
+%% Need to be fixed Below
 
 %% Display a random sampling of images
 
 n = 16;
 figure(1);
-[dataSamp,idx] = datasample(testImages,n,3);
-labelSamp = testLabels(idx);
-contrastSamp = testContrasts(idx);
-freqSamp = testFreqs(idx);
+[dataSamp,idx] = datasample(Images,n,3);
+labelSamp = imgLabels(idx);
+contrastSamp = imgContrasts(idx);
+freqSamp = imgFreqs(idx);
 k = 1;
 for ii = 1:n
     subplot(4,4,k);
@@ -180,9 +214,9 @@ end
 
 %% Generate range
 
-unique_c = unique(testContrasts);
+unique_c = unique(imgContrasts);
 unique_c = unique_c(2:2:end);
-unique_f = unique(testFreqs);
+unique_f = unique(imgFreqs);
 N = length(unique_c);
 M = length(unique_f);
 
@@ -195,16 +229,16 @@ for cc = 1:length(unique_c)
         curr_f = unique_f(ff);
         
         subplot(N,M,k)
-        curr_i = ((testContrasts == curr_c) & ...
-            (testLabels == 1) & ...
-            (testFreqs == curr_f));
+        curr_i = ((imgContrasts == curr_c) & ...
+            (imgLabels == 1) & ...
+            (imgFreqs == curr_f));
         curr_i = find(curr_i == 1); % Choose the first image
         curr_i = curr_i(1);
-        curr_image = testImages(:,:,curr_i);
+        curr_image = Images(:,:,curr_i);
         imagesc(curr_image);
         axis image; axis off;
         title(sprintf('label = %i \n c = %0.2f | f = %0.2f',...
-            testLabels(curr_i),testContrasts(curr_i),testFreqs(curr_i)))
+            imgLabels(curr_i),imgContrasts(curr_i),imgFreqs(curr_i)))
         k = k +1;
     end
 end

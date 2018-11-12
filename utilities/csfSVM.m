@@ -20,7 +20,7 @@ nPCs          = 2;
 fov           = 1;
 sContrast     = 1;
 
-scanFreq      = 6; %logspace(0, 1.5, 5);
+scanFreq      = 10; %logspace(0, 1.5, 5);
 scanContrast  = 0.5; %logspace(-3.5, 0, 5);
 
 accuracy = zeros(numel(scanFreq), numel(scanContrast));
@@ -29,13 +29,15 @@ clear hparams
 hparams(2)           = harmonicP;
 hparams(2).freq      = sFreq;  % Set the Frequency
 hparams(2).contrast  = sContrast;
+hparams(2).GaborFlag = 0.2;
 hparams(1)           = hparams(2);
 hparams(1).contrast  = 0;
 
 sparams.fov = 1;
 
-nTimeSteps = 20;
+nTimeSteps = 100;
 stimWeights = ones(1, nTimeSteps);
+%stimWeights = ieScale(fspecial('gaussian',[1,nTimeSteps],30),0,1);
 %% Set up cone mosaic parameters
 
 integrationTime = 0.005;
@@ -70,7 +72,7 @@ for f = 1 : numel(scanFreq)
     
     %% Calculate the absorption template for the high contrast example of the stimulus
 
-    cm.noiseFlag = 'none';
+    cm.noiseFlag = 'random';
     templateHighContrast     = mean(squeeze(cm.compute(ois)), 3);
     % vcNewGraphWin; imagesc(templateHighContrast); colormap(gray);
     
@@ -93,7 +95,7 @@ for f = 1 : numel(scanFreq)
     % ois.visualize('movie illuminance');
 
     % No eyemovements for now.
-    cm.noiseFlag = 'random';
+    cm.noiseFlag = 'none';
     absorptionsNoise = cm.compute(ois, 'empath', empath);
     meanabsorptionsNoise = mean(absorptionsNoise, 4);
 

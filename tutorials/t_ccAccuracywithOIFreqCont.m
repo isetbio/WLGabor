@@ -6,6 +6,8 @@ function meanProbCorrect = t_ccAccuracywithOIFreqCont
 %
 % Output:
 %       meanProbCorrect     - Mean probability of correctness
+%%
+ieInit;
 %%  call t_ccDiscriminate
 % Set the certain range of contrast, frequency and FOV for the OI sequence, calculate the mean
 % probability of correctness by call t_ccDiscriminate

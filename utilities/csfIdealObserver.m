@@ -2,7 +2,7 @@
 % data is generated using generateTestData script
 
 %% loading data
-FILE_PATH = which('testSet_06-11-18_19_25.mat');
+FILE_PATH = which('testSet_06-11-18_23_45.mat');
 
 data = load(FILE_PATH);
 
@@ -39,9 +39,9 @@ for iterSp = 1:length(scanFreq) %1:length(scanFreq)
         
         % finding isorates
         idx0 = (Contrasts == contrast & Freqs == freq & Labels == 0);
-        isoRate_c0 = reshape(mean(Images_NoNoise(:,:,idx0),3) - mean(Images_NoNoise(:,:,idx1),3),[],1);
+        isoRate_c0 = reshape(mean(Images(:,:,idx0),3),[],1);
         idx1 = (Contrasts == contrast & Freqs == freq & Labels == 1);
-        isoRate_c1 = reshape(mean(Images_NoNoise(:,:,idx1) - mean(Images_NoNoise(:,:,idx1),3),3),[],1);
+        isoRate_c1 = reshape(mean(Images(:,:,idx1), 3),[],1);
         
         %{
             figure; imagesc(mean(Images(:,:,idx0),3));
@@ -49,7 +49,7 @@ for iterSp = 1:length(scanFreq) %1:length(scanFreq)
         %}
         
         % find accuracy 
-        ioAccuracy(iterSp, iterC) = csfPoissonMLE(sample - mean(Images_NoNoise(:,:,idx1),3),sampleLabels, isoRate_c0, isoRate_c1);
+        ioAccuracy(iterSp, iterC) = csfPoissonMLE(sample,sampleLabels, isoRate_c0, isoRate_c1);
            
     end
 end
